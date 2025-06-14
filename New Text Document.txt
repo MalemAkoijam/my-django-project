@@ -1,0 +1,36 @@
+pip install django pytube
+django-admin startproject ytdownloader
+cd ytdownloader
+python manage.py startapp downloader
+
+
+python manage.py makemigrations
+python manage.py migrate
+
+python manage.py runserver
+
+
+
+python manage.py makemigrations
+python manage.py migrate
+
+ytdownloader/              ← Your Django project folder
+│
+├── downloader/            ← Your Django app folder
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py           ← Must define DownloaderConfig
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   └── migrations/
+│       └── __init__.py
+│
+├── ytdownloader/         ← Project settings folder
+│   ├── __init__.py
+│   ├── settings.py       ← Make sure downloader app is here
+│   ├── urls.py
+│   └── wsgi.py
+│
+├── manage.py
+└── db.sqlite3
