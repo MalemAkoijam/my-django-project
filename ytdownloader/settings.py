@@ -35,8 +35,8 @@ DEBUG = True
 # ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
-# ALLOWED_HOSTS = ["*"]
-ALLOWED_HOSTS = ["my-django-project-t0tp.onrender.com"]
+ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["my-django-project-t0tp.onrender.com"]
 
 # ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
