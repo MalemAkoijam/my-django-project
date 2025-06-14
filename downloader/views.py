@@ -15,7 +15,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 # Path to cookies file (update this to match your path)
-COOKIES_FILE = os.path.join(settings.BASE_DIR, 'cookies', 'cookies.txt')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+COOKIES_FILE = os.path.join(BASE_DIR, 'cookies', 'cookies.txt')
 
 class URLForm(forms.Form):
     youtube_url = forms.URLField(label="YouTube URL", widget=forms.URLInput(attrs={'class': 'form-control'}))
@@ -30,6 +31,7 @@ def history_view(request):
 
 @csrf_exempt
 def download_video(request):
+    print("cookies>>>>>"+ COOKIES_FILE)
     if request.method == "POST":
         try:
             url = request.POST.get("youtube_url")
@@ -51,6 +53,7 @@ def download_video(request):
                 'noplaylist': True,
                 # Replace with actual path to cookies.txt if needed
             }
+
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
