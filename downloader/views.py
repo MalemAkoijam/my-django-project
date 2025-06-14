@@ -1,20 +1,22 @@
+import tempfile
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django import forms
 from django.views.decorators.http import require_POST
 from yt_dlp import YoutubeDL
-
-from .models import DownloadHistory
-from .utils import download_video
-from .models import DownloadHistory
-import yt_dlp
-from django.http import JsonResponse, HttpResponseBadRequest, FileResponse
-import json
 import os
 from django.conf import settings
+from urllib.parse import quote
+from .models import DownloadHistory
+import yt_dlp
+from django.http import JsonResponse, HttpResponseBadRequest, FileResponse, Http404
+import json
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-import platform
-import zipfile
-import urllib.request
+
+# Full path to your exported cookies.txt file
+COOKIES_FILE = os.path.join(settings.BASE_DIR, "cookies.txt")
+
 
 class URLForm(forms.Form):
     youtube_url = forms.URLField(label="YouTube URL", widget=forms.URLInput(attrs={'class': 'form-control'}))
@@ -26,6 +28,7 @@ def history_view(request):
     history = DownloadHistory.objects.all().order_by('-downloaded_at')
     return render(request, 'history.html', {'history': history})
 
+
 @csrf_exempt
 def download_video(request):
     if request.method == "POST":
@@ -34,45 +37,37 @@ def download_video(request):
             itag = request.POST.get("resolution")
 
             if not url or not itag:
-                return JsonResponse({"success": False, "error": "Missing URL or format."})
+                return JsonResponse({"success": False, "error": "Missing URL or format."}, status=400)
 
-            output_dir = os.path.join(settings.MEDIA_ROOT, "downloads")
-            os.makedirs(output_dir, exist_ok=True)
-
+            # Temporary download location
+            temp_dir = tempfile.mkdtemp()
             ydl_opts = {
-                'format': f'{itag}+bestaudio/best',  # 🔥 Automatically merges video+audio if needed
-                'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
+                'format': f'{itag}+bestaudio/best',
+                'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
                 'merge_output_format': 'mp4',
                 'quiet': True,
                 'noplaylist': True,
+                'cookies': COOKIES_FILE,
+                'quiet': True,
+                'noplaylist': True,
+                # Replace with actual path to cookies.txt if needed
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-                title = info.get("title")
                 filename = ydl.prepare_filename(info)
 
-            # Save to download history
-            relative_path = os.path.relpath(filename, settings.MEDIA_ROOT)
-            DownloadHistory.objects.create(
-                title=title,
-                url=url,
-                file_path=os.path.join(settings.MEDIA_URL, relative_path)
-            )
+            if not os.path.exists(filename):
+                raise Http404("Download failed.")
 
-            return JsonResponse({"success": True, "message": "Download complete."})
+            response = FileResponse(open(filename, 'rb'), as_attachment=True, filename=os.path.basename(filename))
+            return response
 
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-    return JsonResponse({"success": False, "error": "Invalid request"})
+    return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
 
-
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from yt_dlp import YoutubeDL
 
 @csrf_exempt
 def fetch_video_info(request):
@@ -89,6 +84,7 @@ def fetch_video_info(request):
         ydl_opts = {
             'quiet': True,
             'skip_download': True,
+            'cookies': COOKIES_FILE,  # ✅ Use cookies
         }
 
         with YoutubeDL(ydl_opts) as ydl:
@@ -116,7 +112,6 @@ def fetch_video_info(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
 
 @require_POST
 def delete_history(request, id):

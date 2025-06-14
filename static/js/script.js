@@ -1,27 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const downloadForm = document.getElementById("downloadForm");
-
-    if (downloadForm) {
-        downloadForm.addEventListener("submit", function (e) {
-            // Optional: validate selection
-            const itag = document.getElementById("video-resolutions").value;
-            const url = document.getElementById("youtube_url").value;
-
-            document.getElementById("hidden_resolution").value = itag;
-            document.getElementById("hidden_url").value = url;
-
-            // Let it submit normally (browser handles download)
-        });
-    }
-});
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
     const checkForm = document.getElementById("checkForm");
     const downloadForm = document.getElementById("downloadForm");
 
-    // Handle check form (fetch video info)
+    // ✅ Fetch video info
     if (checkForm) {
         checkForm.addEventListener("submit", function (e) {
             e.preventDefault();
@@ -80,55 +61,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Handle download form (download video)
+    // ✅ Let browser handle video download via form submission
     if (downloadForm) {
         downloadForm.addEventListener("submit", function (e) {
-            e.preventDefault();
-
             const url = document.getElementById("hidden_url").value;
             const itag = document.getElementById("video-resolutions").value;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
             if (!url || !itag) {
                 alert("Please select a resolution.");
+                e.preventDefault(); // Prevent empty submission
                 return;
             }
 
+            // Fill hidden fields
             document.getElementById("hidden_resolution").value = itag;
-            document.getElementById("progress-container").style.display = "block";
 
-            fetch("/download/", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                },
-                body: new URLSearchParams({
-                    youtube_url: url,
-                    resolution: itag,
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert("✅ Download complete!");
-                } else {
-                    alert("❌ " + data.error);
-                }
-            })
-            .catch(err => {
-                alert("❌ An error occurred during download.");
-                console.error(err);
-            });
-
-            // Simulate fake progress
-            let i = 0;
-            const interval = setInterval(() => {
-                i += 5;
-                if (i > 100) i = 100;
-                document.getElementById("download-progress").value = i;
-                document.getElementById("progress-text").textContent = `${i}%`;
-                if (i === 100) clearInterval(interval);
-            }, 300);
+            // ✅ Let browser handle file download via form submission to new tab
+            // Do not prevent default! Let the form submit normally
+            // Optional: Show loading spinner
+            document.getElementById("download-spinner").style.display = "inline"; // if you have one
         });
     }
 });

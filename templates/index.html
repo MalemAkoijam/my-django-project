@@ -42,13 +42,20 @@
                         <option value="">Select resolution</option>
                     </select>
                 </div>
-
-                <form id="downloadForm" method="POST" action="{% url 'download' %}">
+                <form id="downloadForm" method="POST" action="/download/" target="_blank">
                     {% csrf_token %}
                     <input type="hidden" name="youtube_url" id="hidden_url">
                     <input type="hidden" name="resolution" id="hidden_resolution">
-                    <button type="submit" class="btn btn-success">⬇ Download</button>
+                    <button type="submit">⬇️ Download</button>
+                     <span id="download-spinner" style="display:none;">⏳ Preparing...</span>
                 </form>
+
+<!--                <form id="downloadForm" method="POST" action="{% url 'download' %}">-->
+<!--                    {% csrf_token %}-->
+<!--                    <input type="hidden" name="youtube_url" id="hidden_url">-->
+<!--                    <input type="hidden" name="resolution" id="hidden_resolution">-->
+<!--                    <button type="submit" class="btn btn-success">⬇ Download</button>-->
+<!--                </form>-->
 
                 <!-- Progress Bar -->
                 <div id="progress-container" class="mt-4" style="display: none;">
