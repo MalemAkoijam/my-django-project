@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ytdownloader
+    env: python
+    buildCommand: |
+      pip install Django==5.2.3 gunicorn==23.0.0  yt-dlp==2025.6.9
+      pip install numpy requests 
+    startCommand: gunicorn ytdownloader.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: ytdownloader.settings
+      - key: SECRET_KEY
+        value: eu!je7qu@p#8*i63_1236n2q3r^h#yuc0xgz)q#v2+1&ll(v%4
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ytdownloader.onrender.com
