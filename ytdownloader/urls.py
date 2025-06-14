@@ -30,5 +30,5 @@ urlpatterns = [
     path('fetch_info/', views.fetch_video_info, name='fetch_info'),  # History page
     path('delete_history/<int:id>/', views.delete_history, name='delete_history'),# ✅ This must match,  # History page
     path('history.html/', views.history_view, name='download_history'),
-] + static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://my-django-project-t0tp.onrender.com/sitemap.xml

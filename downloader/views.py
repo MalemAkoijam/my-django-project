@@ -69,86 +69,54 @@ def download_video(request):
 
 
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from yt_dlp import YoutubeDL
+
 @csrf_exempt
 def fetch_video_info(request):
-    if request.method == "POST":
-        try:
+    if request.method != "POST":
+        return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
-            # ensure_ffmpeg_installed()  # <== Important
+    try:
+        data = json.loads(request.body)
+        url = data.get("youtube_url")
 
-            data = json.loads(request.body)
-            url = data.get("youtube_url")
+        if not url:
+            return JsonResponse({'success': False, 'error': 'URL is required'}, status=400)
 
-            ydl_opts = {
-                'quiet': True,
-                'skip_download': True,
-            }
+        ydl_opts = {
+            'quiet': True,
+            'skip_download': True,
+        }
 
-            with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                formats = []
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            formats = []
 
-                for f in info.get("formats", []):
-                    if f.get("vcodec") != "none":  # allow both video-only and video+audio
-                        filesize = f.get("filesize") or f.get("filesize_approx") or 0
-                        formats.append({
-                            'itag': f['format_id'],
-                            'ext': f.get('ext'),
-                            'format_note': f.get('format_note') or f.get('resolution'),
-                            'resolution': f.get('resolution'),
-                            'filesize': filesize,
-                            'has_audio': f.get("acodec") != "none"
-                        })
+            for f in info.get("formats", []):
+                if f.get("vcodec") != "none":  # keep video-only and video+audio
+                    filesize = f.get("filesize") or f.get("filesize_approx") or 0
+                    formats.append({
+                        'itag': f['format_id'],
+                        'ext': f.get('ext'),
+                        'format_note': f.get('format_note') or f.get('resolution'),
+                        'resolution': f.get('resolution'),
+                        'filesize': filesize,
+                        'has_audio': f.get("acodec") != "none"
+                    })
 
-                return JsonResponse({
-                    'success': True,
-                    'title': info.get('title'),
-                    'thumbnail': info.get('thumbnail'),
-                    'formats': formats
-                })
+        return JsonResponse({
+            'success': True,
+            'title': info.get('title'),
+            'thumbnail': info.get('thumbnail'),
+            'formats': formats
+        })
 
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request'})
-
-
-
-
-FFMPEG_DIR = os.path.join(os.getcwd(), "ffmpeg")
-
-def ensure_ffmpeg_installed():
-    ffmpeg_path = os.path.join(FFMPEG_DIR, "bin", "ffmpeg.exe" if platform.system() == "Windows" else "ffmpeg")
-
-    # Already installed
-    if os.path.isfile(ffmpeg_path):
-        os.environ["PATH"] += os.pathsep + os.path.join(FFMPEG_DIR, "bin")
-        return
-
-    # Download FFmpeg for Windows
-    if platform.system() == "Windows":
-        url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-        zip_path = os.path.join(FFMPEG_DIR, "ffmpeg.zip")
-
-        os.makedirs(FFMPEG_DIR, exist_ok=True)
-
-        print("Downloading FFmpeg...")
-        urllib.request.urlretrieve(url, zip_path)
-
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            for member in zip_ref.namelist():
-                if member.endswith('ffmpeg.exe'):
-                    zip_ref.extract(member, FFMPEG_DIR)
-            zip_ref.extractall(FFMPEG_DIR)
-
-        # Move `bin` folder
-        for root, dirs, files in os.walk(FFMPEG_DIR):
-            if 'ffmpeg.exe' in files:
-                bin_path = os.path.dirname(os.path.join(root, 'ffmpeg.exe'))
-                os.environ["PATH"] += os.pathsep + bin_path
-                break
-
-        os.remove(zip_path)
 
 @require_POST
 def delete_history(request, id):
