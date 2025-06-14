@@ -14,9 +14,8 @@ import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-# Full path to your exported cookies.txt file
-COOKIES_FILE = os.path.join(settings.BASE_DIR, "cookies.txt")
-
+# Path to cookies file (update this to match your path)
+COOKIES_FILE = os.path.join(settings.BASE_DIR, 'cookies', 'cookies.txt')
 
 class URLForm(forms.Form):
     youtube_url = forms.URLField(label="YouTube URL", widget=forms.URLInput(attrs={'class': 'form-control'}))
