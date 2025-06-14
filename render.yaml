@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ytdownloader
+    name: ytdownloader-malem
     env: python
     buildCommand: |
       pip install Django==5.2.3 gunicorn==23.0.0 yt-dlp==2025.6.9
@@ -14,4 +14,5 @@ services:
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: "ytdownloader.onrender.com"
+        value: ytdownloader-malem.onrender.com
+
