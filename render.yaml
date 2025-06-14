@@ -14,5 +14,5 @@ services:
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: ytdownloader-malem.onrender.com
+        value: my-django-project-t0tp.onrender.com
 
